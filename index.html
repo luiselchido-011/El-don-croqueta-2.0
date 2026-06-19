@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Don Croqueta 2.0 — Proyecto de Robótica</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:       #0d0f14;
+      --surface:  #141720;
+      --card:     #1a1e2a;
+      --border:   #252a38;
+      --accent:   #3dffa0;
+      --accent2:  #38c2ff;
+      --accent3:  #ff6b6b;
+      --amber:    #ffbe3d;
+      --text:     #e8ecf5;
+      --muted:    #6b7494;
+      --sans:     'Space Grotesk', sans-serif;
+      --mono:     'DM Mono', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; width: 100%; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2.5rem;
+      background: rgba(13,15,20,.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-size: .85rem; font-weight: 600; letter-spacing: .12em;
+      text-transform: uppercase; color: var(--accent);
+    }
+    .nav-links { display: flex; gap: 1.8rem; list-style: none; }
+    .nav-links a {
+      font-size: .82rem; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none; transition: color .2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100vh; display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center; gap: 2rem;
+      padding: 9rem 2.5rem 4rem;
+      position: relative; overflow: hidden;
+    }
+    #hero::before {
+      content: '';
+      position: absolute; top: -20%; right: -10%;
+      width: 60vw; height: 60vw;
+      background: radial-gradient(circle, rgba(61,255,160,.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    #hero::after {
+      content: '';
+      position: absolute; bottom: -10%; left: -5%;
+      width: 40vw; height: 40vw;
+      background: radial-gradient(circle, rgba(56,194,255,.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-text { position: relative; z-index: 2; }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: .5rem;
+      font-family: var(--mono); font-size: .75rem; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--accent);
+      background: rgba(61,255,160,.08);
+      border: 1px solid rgba(61,255,160,.2);
+      border-radius: 2rem; padding: .3rem .9rem; margin-bottom: 1.5rem;
+    }
+    .hero-eyebrow::before { content: '●'; font-size: .5rem; animation: blink 1.5s step-end infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    h1 {
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 700; line-height: 1.05; letter-spacing: -.02em;
+      margin-bottom: 1.2rem;
+    }
+    h1 em { font-style: normal; color: var(--accent); }
+    .hero-sub {
+      font-size: 1.1rem; color: var(--muted); max-width: 46ch;
+      margin-bottom: 2.2rem; line-height: 1.7;
+    }
+    .problem-tag {
+      display: inline-flex; align-items: flex-start; gap: .8rem;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: .75rem; padding: 1rem 1.3rem; max-width: 42ch;
+    }
+    .problem-tag-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: .1rem; }
+    .problem-tag-label { font-family: var(--mono); font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--accent3); margin-bottom: .3rem; }
+    .problem-tag-text { font-size: .9rem; color: var(--muted); }
+
+    /* ── 3D VIEWER ── */
+    .hero-3d {
+      position: relative; z-index: 2;
+      width: 100%; aspect-ratio: 1;
+      border-radius: 1.5rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .viewer-label {
+      position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%);
+      font-family: var(--mono); font-size: .7rem; color: var(--muted);
+      background: rgba(13,15,20,.7); border: 1px solid var(--border);
+      padding: .3rem .8rem; border-radius: 2rem; white-space: nowrap;
+      pointer-events: none;
+    }
+    .viewer-glow {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 100%, rgba(61,255,160,.07) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ── SECTIONS SHARED ── */
+    section { padding: 5rem 2.5rem; }
+    .section-eyebrow {
+      font-family: var(--mono); font-size: .72rem; text-transform: uppercase;
+      letter-spacing: .12em; color: var(--accent); margin-bottom: .8rem;
+    }
+    h2 {
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 700; letter-spacing: -.02em; margin-bottom: 1rem;
+    }
+    .section-intro { color: var(--muted); max-width: 60ch; line-height: 1.75; margin-bottom: 3rem; }
+
+    /* ── COMPONENTS ── */
+    #components { background: var(--surface); }
+    .components-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.25rem;
+    }
+    .comp-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 1rem; padding: 1.6rem;
+      transition: border-color .25s, transform .25s;
+      cursor: default;
+    }
+    .comp-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .comp-number {
+      font-family: var(--mono); font-size: .7rem; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: .6rem;
+    }
+    .comp-icon { font-size: 2rem; margin-bottom: .8rem; display: block; }
+    .comp-title { font-size: 1.1rem; font-weight: 600; margin-bottom: .6rem; }
+    .comp-color-1 .comp-title { color: var(--accent); }
+    .comp-color-2 .comp-title { color: var(--accent2); }
+    .comp-color-3 .comp-title { color: var(--amber); }
+    .comp-color-4 .comp-title { color: var(--accent3); }
+    .comp-list { list-style: none; }
+    .comp-list li {
+      font-size: .88rem; color: var(--muted); padding: .35rem 0;
+      border-bottom: 1px solid var(--border); line-height: 1.5;
+    }
+    .comp-list li:last-child { border-bottom: none; }
+    .comp-list strong { color: var(--text); font-weight: 500; }
+
+    /* ── FIELDS ── */
+    #fields { background: var(--bg); }
+    .fields-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    }
+    .field-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 1rem; padding: 2rem; position: relative; overflow: hidden;
+    }
+    .field-card.primary { border-color: rgba(61,255,160,.35); grid-column: span 2; }
+    .field-card.primary::before {
+      content: 'CAMPO PRINCIPAL';
+      position: absolute; top: 1rem; right: 1rem;
+      font-family: var(--mono); font-size: .65rem; letter-spacing: .1em;
+      color: var(--accent); background: rgba(61,255,160,.1);
+      border: 1px solid rgba(61,255,160,.2); padding: .2rem .6rem; border-radius: 2rem;
+    }
+    .field-tag {
+      display: inline-flex; align-items: center; gap: .5rem;
+      font-family: var(--mono); font-size: .75rem; letter-spacing: .08em;
+      text-transform: uppercase; padding: .3rem .8rem; border-radius: 2rem;
+      margin-bottom: 1rem; border: 1px solid;
+    }
+    .tag-iot   { color: var(--accent);  background: rgba(61,255,160,.08);  border-color: rgba(61,255,160,.3); }
+    .tag-ai    { color: var(--accent2); background: rgba(56,194,255,.08);  border-color: rgba(56,194,255,.3); }
+    .field-title { font-size: 1.25rem; font-weight: 600; margin-bottom: .8rem; }
+    .field-body { font-size: .92rem; color: var(--muted); line-height: 1.75; }
+
+    /* ── DIAGRAM INLINE (representation) ── */
+    #diagram { background: var(--surface); }
+    .diagram-wrap {
+      border-radius: 1.25rem; overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .diagram-wrap img { width: 100%; display: block; }
+
+    /* ── ALGORITHM ── */
+    #algorithm { background: var(--bg); }
+    .algo-grid { display: flex; flex-direction: column; gap: 1rem; }
+    .algo-step {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: .875rem; padding: 1.4rem 1.6rem;
+      display: grid; grid-template-columns: auto 1fr; gap: 1.2rem;
+      align-items: start; transition: border-color .2s;
+    }
+    .algo-step:hover { border-color: var(--accent2); }
+    .algo-index {
+      width: 2rem; height: 2rem; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: .75rem; font-weight: 500;
+      background: rgba(56,194,255,.12); color: var(--accent2);
+      border: 1px solid rgba(56,194,255,.25); flex-shrink: 0; margin-top: .15rem;
+    }
+    .algo-content { display: flex; flex-direction: column; gap: .5rem; }
+    .algo-condition {
+      font-family: var(--mono); font-size: .82rem;
+      color: var(--accent); background: rgba(61,255,160,.06);
+      border: 1px solid rgba(61,255,160,.15); border-radius: .5rem;
+      padding: .45rem .75rem;
+    }
+    .algo-arrow { font-size: .75rem; color: var(--muted); }
+    .algo-action {
+      font-size: .92rem; color: var(--text); font-weight: 500;
+    }
+    .algo-sensor {
+      font-family: var(--mono); font-size: .7rem; color: var(--muted);
+      letter-spacing: .05em; text-transform: uppercase;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border); padding: 2.5rem 2.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem;
+      background: var(--surface);
+    }
+    .footer-logo { font-weight: 700; font-size: 1rem; color: var(--accent); }
+    .footer-meta { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+    .footer-tags { display: flex; gap: .6rem; flex-wrap: wrap; }
+    .badge {
+      font-family: var(--mono); font-size: .65rem; letter-spacing: .07em;
+      text-transform: uppercase; padding: .25rem .65rem; border-radius: 2rem;
+      border: 1px solid var(--border); color: var(--muted);
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      #hero { grid-template-columns: 1fr; padding-top: 7rem; }
+      .hero-3d { max-width: 420px; margin: 0 auto; }
+      .fields-grid { grid-template-columns: 1fr; }
+      .field-card.primary { grid-column: span 1; }
+      nav { padding: .9rem 1.2rem; }
+      .nav-links { gap: 1rem; }
+      section { padding: 3.5rem 1.2rem; }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <span class="nav-logo">Don Croqueta 2.0</span>
+  <ul class="nav-links">
+    <li><a href="#components">Componentes</a></li>
+    <li><a href="#fields">Tecnología</a></li>
+    <li><a href="#diagram">Diagrama</a></li>
+    <li><a href="#algorithm">Algoritmo</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-text">
+    <span class="hero-eyebrow">Proyecto de Robótica</span>
+    <h1>Don <em>Croqueta</em><br>2.0</h1>
+    <p class="hero-sub">
+      Robot doméstico inteligente que acompaña y monitorea a tu mascota
+      cuando estás en la escuela o el trabajo. Detecta emociones, reproduce
+      sonidos familiares y te notifica en tiempo real.
+    </p>
+    <div class="problem-tag">
+      <span class="problem-tag-icon">🐾</span>
+      <div>
+        <div class="problem-tag-label">Problema identificado</div>
+        <div class="problem-tag-text">
+          Mi perro se queda solo en casa y sufre de soledad y ansiedad.
+          El Don Croqueta 2.0 lo acompaña durante el día y me mantiene informado.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROBOT IMAGE -->
+  <div class="hero-3d">
+    <img src="robot-remastered.png" alt="Don Croqueta 2.0 - Robot de acompañamiento para mascotas" style="width:100%; height:100%; object-fit:contain; display:block; background:var(--card); padding:1rem;" />
+    <div class="viewer-glow"></div>
+  </div>
+</section>
+
+<!-- COMPONENTS -->
+<section id="components">
+  <p class="section-eyebrow">Los 4 componentes</p>
+  <h2>¿Cómo está construido?</h2>
+  <p class="section-intro">
+    Todo robot necesita cuatro partes fundamentales que trabajan juntas como un equipo.
+    Aquí están los componentes del Don Croqueta 2.0 y su función.
+  </p>
+  <div class="components-grid">
+
+    <div class="comp-card comp-color-1">
+      <div class="comp-number">Componente 01</div>
+      <span class="comp-icon">📡</span>
+      <div class="comp-title">Sensores</div>
+      <ul class="comp-list">
+        <li><strong>Cámara gran angular</strong> — Detecta imágenes, movimiento y reconoce a la mascota por visión computacional.</li>
+        <li><strong>Micrófono</strong> — Escucha si el perro ladra o llora. Analiza el audio para detectar angustia.</li>
+        <li><strong>Sensor PIR de movimiento</strong> — Detecta presencia y distingue si el perro está quieto (durmiendo) o agitado (ansioso).</li>
+      </ul>
+    </div>
+
+    <div class="comp-card comp-color-2">
+      <div class="comp-number">Componente 02</div>
+      <span class="comp-icon">🧠</span>
+      <div class="comp-title">Procesador</div>
+      <ul class="comp-list">
+        <li><strong>Raspberry Pi 4</strong> — Microcomputadora que analiza los datos de la cámara y el micrófono.</li>
+        <li>Decide qué acción tomar según el comportamiento del perro.</li>
+        <li>Coordina todos los actuadores y mantiene la conexión WiFi con el celular del dueño.</li>
+      </ul>
+    </div>
+
+    <div class="comp-card comp-color-3">
+      <div class="comp-number">Componente 03</div>
+      <span class="comp-icon">⚙️</span>
+      <div class="comp-title">Actuadores</div>
+      <ul class="comp-list">
+        <li><strong>Bocina</strong> — Reproduce la voz del dueño o música relajante.</li>
+        <li><strong>Dispensador de premios</strong> — Servo motor que lanza una galleta como recompensa.</li>
+        <li><strong>Luz LED RGB</strong> — Cambia de color para señalar el estado emocional del perro.</li>
+      </ul>
+    </div>
+
+    <div class="comp-card comp-color-4">
+      <div class="comp-number">Componente 04</div>
+      <span class="comp-icon">💾</span>
+      <div class="comp-title">Programa</div>
+      <ul class="comp-list">
+        <li><strong>Software de control</strong> — Instrucciones que dicen al robot cuándo reproducir sonidos y cuándo lanzar premios.</li>
+        <li><strong>App móvil (IoT)</strong> — Envía alertas al celular del dueño y permite comunicación bidireccional en tiempo real.</li>
+        <li><strong>IA de reconocimiento</strong> — Clasifica el comportamiento del perro (tranquilo, ansioso, jugando).</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- FIELDS -->
+<section id="fields">
+  <p class="section-eyebrow">Campo tecnológico</p>
+  <h2>¿En qué mundo tecnológico vive?</h2>
+  <p class="section-intro">
+    El Don Croqueta 2.0 no es solo un robot: pertenece a los campos más avanzados
+    de la tecnología moderna.
+  </p>
+  <div class="fields-grid">
+
+    <div class="field-card primary">
+      <span class="field-tag tag-iot">🌐 Internet de las Cosas (IoT)</span>
+      <div class="field-title">Campo principal: IoT</div>
+      <p class="field-body">
+        El Don Croqueta 2.0 pertenece principalmente al campo del <strong>Internet de las Cosas (IoT)</strong>,
+        porque sus sensores están conectados a internet y envían información en tiempo real al celular
+        del dueño, permitiéndole ver y escuchar a su perro desde cualquier lugar del mundo.
+        El robot no funciona de manera aislada: forma parte de una red inteligente donde los
+        dispositivos se comunican entre sí. La app del teléfono recibe alertas automáticas,
+        y el dueño puede enviar mensajes de audio al robot para que los reproduzca, creando
+        un canal de comunicación continuo entre persona, máquina y mascota.
+      </p>
+    </div>
+
+    <div class="field-card">
+      <span class="field-tag tag-ai">🤖 Inteligencia Artificial</span>
+      <div class="field-title">Campo secundario: IA</div>
+      <p class="field-body">
+        La cámara utiliza <strong>reconocimiento de imágenes</strong> para identificar
+        el comportamiento del perro y distinguir si está tranquilo, ansioso o jugando.
+        El sistema toma decisiones automáticas sin que nadie se lo indique, aprendiendo
+        con el tiempo los patrones de comportamiento individuales de cada mascota.
+      </p>
+    </div>
+
+    <div class="field-card">
+      <span class="field-tag" style="color:var(--amber); background:rgba(255,190,61,.08); border-color:rgba(255,190,61,.3);">⚙️ Robótica</span>
+      <div class="field-title">Campo base: Robótica</div>
+      <p class="field-body">
+        El Don Croqueta 2.0 integra <strong>hardware físico</strong> (motores, sensores,
+        estructura mecánica) con software inteligente, siguiendo los principios clásicos
+        de la robótica: percibir el entorno, procesar la información y actuar sobre él
+        de forma autónoma y controlada.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<!-- DIAGRAM -->
+<section id="diagram">
+  <p class="section-eyebrow">Representación visual</p>
+  <h2>Diagrama de componentes</h2>
+  <p class="section-intro">
+    El siguiente diagrama muestra los cuatro componentes del Don Croqueta 2.0
+    y cómo se conectan entre sí para formar el sistema completo.
+  </p>
+  <div class="diagram-wrap">
+    <img src="info.png" alt="Diagrama de componentes del Don Croqueta 2.0" />
+  </div>
+</section>
+
+<!-- ALGORITHM -->
+<section id="algorithm">
+  <p class="section-eyebrow">Mini algoritmo</p>
+  <h2>¿Cómo piensa el robot?</h2>
+  <p class="section-intro">
+    El Don Croqueta 2.0 sigue un conjunto de reglas lógicas: si detecta algo, entonces reacciona.
+    Aquí están las 5 condiciones que guían su comportamiento (supera el mínimo de 3 requeridas).
+  </p>
+  <div class="algo-grid">
+
+    <div class="algo-step">
+      <div class="algo-index">01</div>
+      <div class="algo-content">
+        <div class="algo-sensor">📻 Sensor: Micrófono</div>
+        <div class="algo-condition">Si el micrófono detecta que el perro lleva más de 2 minutos ladrando o llorando…</div>
+        <div class="algo-arrow">→ entonces</div>
+        <div class="algo-action">la bocina reproduce la voz grabada del dueño para calmarlo.</div>
+      </div>
+    </div>
+
+    <div class="algo-step">
+      <div class="algo-index">02</div>
+      <div class="algo-content">
+        <div class="algo-sensor">📷 Sensor: Cámara</div>
+        <div class="algo-condition">Si la cámara detecta que el perro lleva más de 1 hora sin moverse…</div>
+        <div class="algo-arrow">→ entonces</div>
+        <div class="algo-action">activa el dispensador y lanza un premio para animarlo a jugar.</div>
+      </div>
+    </div>
+
+    <div class="algo-step">
+      <div class="algo-index">03</div>
+      <div class="algo-content">
+        <div class="algo-sensor">🚶 Sensor: PIR de movimiento</div>
+        <div class="algo-condition">Si el sensor de movimiento detecta que el perro está muy agitado (corriendo de un lado a otro)…</div>
+        <div class="algo-arrow">→ entonces</div>
+        <div class="algo-action">reproduce música relajante y enciende la luz LED en color azul.</div>
+      </div>
+    </div>
+
+    <div class="algo-step">
+      <div class="algo-index">04</div>
+      <div class="algo-content">
+        <div class="algo-sensor">⏱ Sensor: Tiempo + Cámara</div>
+        <div class="algo-condition">Si el perro no ha comido o bebido agua en más de 4 horas…</div>
+        <div class="algo-arrow">→ entonces</div>
+        <div class="algo-action">envía una notificación de alerta al celular del dueño.</div>
+      </div>
+    </div>
+
+    <div class="algo-step">
+      <div class="algo-index">05</div>
+      <div class="algo-content">
+        <div class="algo-sensor">📱 Entrada: App del dueño (IoT)</div>
+        <div class="algo-condition">Si el dueño manda un mensaje de audio desde la app del celular…</div>
+        <div class="algo-arrow">→ entonces</div>
+        <div class="algo-action">el robot reproduce ese audio en tiempo real para que el perro escuche la voz familiar.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-logo">Don Croqueta 2.0</div>
+    <div class="footer-meta">Sistema inteligente de acompañamiento para mascotas</div>
+  </div>
+  <div class="footer-tags">
+    <span class="badge">Robótica</span>
+    <span class="badge">IoT</span>
+    <span class="badge">IA</span>
+    <span class="badge">Raspberry Pi 4</span>
+    <span class="badge">5 condiciones ✓</span>
+    <span class="badge">4 componentes ✓</span>
+  </div>
+</footer>
+
+</body>
+</html>
